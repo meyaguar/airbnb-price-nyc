@@ -1,0 +1,23 @@
+{
+  "numeric": [
+    "latitude",
+    "longitude",
+    "minimum_nights",
+    "number_of_reviews",
+    "reviews_per_month",
+    "calculated_host_listings_count",
+    "availability_365",
+    "dist_times_sq_km",
+    "dist_wall_st_km",
+    "log1p_minimum_nights",
+    "log1p_number_of_reviews",
+    "log1p_reviews_per_month",
+    "log1p_calculated_host_listings_count",
+    "log1p_availability_365"
+  ],
+  "categorical": [
+    "neighbourhood_group",
+    "room_type"
+  ],
+  "target": "price"
+}
