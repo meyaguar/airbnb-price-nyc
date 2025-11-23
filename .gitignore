@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Data & models
+data/interim/
+data/processed/
+models/*.joblib
+models/*.pkl
+
+# MacOS
+.DS_Store
