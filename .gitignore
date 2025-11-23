@@ -5,9 +5,9 @@ __pycache__/
 .env
 
 # Data & models
-data/interim/
-data/processed/
-models/*.joblib
+#data/interim/
+#data/processed/
+#models/*.joblib
 models/*.pkl
 
 # MacOS
