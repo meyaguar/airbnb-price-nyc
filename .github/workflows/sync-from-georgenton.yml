@@ -1,0 +1,62 @@
+name: Sync from georgenton to meyaguar
+
+on:
+  # Permite ejecutar el workflow manualmente desde la pestaña Actions
+  workflow_dispatch:
+
+  # Ejecutar automáticamente cada 15 minutos (horario en UTC)
+  schedule:
+    - cron: "*/15 * * * *"
+
+# Permiso para que GITHUB_TOKEN pueda hacer push al repo B
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout target repo (meyaguar)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false  # usaremos GITHUB_TOKEN explícitamente para el push
+
+      - name: Configurar identidad de git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Clonar repo fuente (georgenton)
+        run: |
+          git clone --depth=1 https://github.com/georgenton/airbnb-price-nyc.git /tmp/source
+
+      - name: Copiar archivos del repo fuente al destino
+        run: |
+          rsync -av --delete \
+            --exclude ".git" \
+            --exclude ".github" \
+            /tmp/source/ .
+
+      - name: Mostrar cambios
+        run: |
+          git status
+          git diff --stat || true
+
+      - name: Crear commit si hay cambios
+        run: |
+          if git status --porcelain | grep .; then
+            echo "Hay cambios, creando commit..."
+            git add .
+            git commit -m "chore(sync): update from georgenton/airbnb-price-nyc"
+          else
+            echo "No hay cambios que sincronizar."
+          fi
+
+      - name: Push a main (meyaguar)
+        if: ${{ success() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Si tu rama principal NO es 'main', cambia HEAD:main por HEAD:<nombre-rama>
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main
