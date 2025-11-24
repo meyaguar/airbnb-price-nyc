@@ -1,7 +1,7 @@
 # NYC Airbnb Price Prediction – Arquitectura y Despliegue
 
 > **Demo en producción:** https://airbnb-nyc.streamlit.app/  
-> (conectado a la API FastAPI desplegada en Docker sobre AWS EC2)
+> **API FastAPI desplegada en Docker sobre AWS EC2:** http://3.135.181.84:8000/docs 
 
 
 Proyecto del **Seminario de Analítica con Python** (Grupo 13) cuyo objetivo es predecir el precio por noche de alojamientos tipo Airbnb en la ciudad de Nueva York, utilizando un pipeline completo de **ML + API + Dashboard**.

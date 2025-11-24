@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Despliegue - Airbnb NYC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #111111;
+            font-size: 18px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #0b1120;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* Layout general: diagrama a la izquierda, leyenda a la derecha */
+        .layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 32px;
+        }
+
+        .diagram-wrapper {
+            position: relative;
+            flex: 2;
+        }
+
+        .diagram {
+            display: grid;
+            /* ANTES: grid-template-columns: repeat(3, 1fr); */
+            grid-template-columns: 1.4fr 1.4fr;  /* izquierda más estrecha, centro más ancho */
+            gap: 40px 40px;                      /* un poco menos de espacio vertical */
+            position: relative;
+            z-index: 2; /* sobre las flechas */
+        }
+        
+        .node {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+            text-align: center;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 3px solid #e0e0e0;
+        }
+        
+        .node:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.25);
+        }
+        
+        .node-icon {
+            font-size: 56px;
+            margin-bottom: 14px;
+        }
+        
+        .node-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #020617;
+        }
+        
+        .node-subtitle {
+            font-size: 18px;
+            color: #1f2937;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .node-detail {
+            font-size: 16px;
+            color: #0f172a;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        
+        /* Colores específicos por tipo */
+        .user { 
+            border-color: #2563eb; 
+            background: linear-gradient(135deg, #dbeafe 0%, #ffffff 100%); 
+        }
+        .frontend { 
+            border-color: #dc2626; 
+            background: linear-gradient(135deg, #fee2e2 0%, #ffffff 100%); 
+        }
+        .backend { 
+            border-color: #f59e0b; 
+            background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%); 
+        }
+        .infrastructure { 
+            border-color: #8b5cf6; 
+            background: linear-gradient(135deg, #ede9fe 0%, #ffffff 100%); 
+        }
+        .storage { 
+            border-color: #0d9488; 
+            background: linear-gradient(135deg, #ccfbf1 0%, #ffffff 100%); 
+        }
+        .development { 
+            border-color: #334155; 
+            background: linear-gradient(135deg, #e5e7eb 0%, #ffffff 100%); 
+        }
+
+        /* Posiciones en la grilla (flujo principal centrado) */
+        .pos-user      { grid-column: 2; grid-row: 1; }
+        .pos-streamlit { grid-column: 2; grid-row: 2; }
+        .pos-elastic   { grid-column: 2; grid-row: 3; }
+        .pos-ec2       { grid-column: 2; grid-row: 4; }
+
+        .pos-github { grid-column: 1; grid-row: 2; }
+        .pos-ecr    { grid-column: 1; grid-row: 4; }
+
+        /* Panel de leyenda vertical a la derecha */
+        .legend-panel {
+            flex: 1;
+            max-width: 300px;
+            background: #f9fafb;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 20px 18px;
+        }
+
+        .legend-title {
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #0f172a;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .legend-section {
+            margin-top: 16px;
+        }
+
+        .legend-subtitle {
+            font-weight: 700;
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+        }
+        
+        .legend-items-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 15px;
+            color: #1f2933;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+
+        .legend-line {
+            width: 40px;
+            height: 4px;
+            border-radius: 4px;
+        }
+
+        /* SVG de conexiones */
+        .connections-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .diagram {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .pos-user,
+            .pos-streamlit,
+            .pos-elastic,
+            .pos-ec2,
+            .pos-github,
+            .pos-ecr {
+                grid-column: 1 !important;
+                grid-row: auto !important;
+            }
+
+            .legend-panel {
+                max-width: none;
+                width: 100%;
+            }
+
+            .title {
+                font-size: 30px;
+            }
+
+            .node-title {
+                font-size: 22px;
+            }
+
+            .node-subtitle,
+            .node-detail {
+                font-size: 16px;
+            }
+
+            /* Ocultamos las flechas en móvil para evitar desalineaciones */
+            .connections-svg {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🏗️ Arquitectura de Despliegue - Airbnb NYC Price Prediction</h1>
+
+        <div class="layout">
+            <!-- Diagrama principal -->
+            <div class="diagram-wrapper">
+                <!-- Flechas -->
+                 <svg class="connections-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                        <!-- Flechas azules: flujo principal -->
+                        <marker id="arrow-blue" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                            <path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb" />
+                        </marker>
+                        <!-- Flechas naranjas: código / imágenes -->
+                        <marker id="arrow-orange" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                            <path d="M0,0 L5,2.5 L0,5 z" fill="#ea580c" />
+                        </marker>
+                    </defs>
+
+                    <!-- FLUJO PRINCIPAL (AZUL): Usuario -> Streamlit -> Elastic IP -> EC2 -->
+                    <!-- Usuario -> Streamlit -->
+                    <line x1="75" y1="15" x2="75" y2="23"
+                        stroke="#2563eb" stroke-width="0.5"
+                        stroke-linecap="round"
+                        marker-end="url(#arrow-blue)" />
+
+                    <!-- Streamlit -> Elastic IP -->
+                    <line x1="75" y1="39" x2="75" y2="51"
+                        stroke="#2563eb" stroke-width="0.5"
+                        stroke-linecap="round"
+                        marker-end="url(#arrow-blue)" />
+
+                    <!-- Elastic IP -> EC2 -->
+                    <line x1="75" y1="59" x2="75" y2="76"
+                        stroke="#2563eb" stroke-width="0.5"
+                        stroke-linecap="round"
+                        marker-end="url(#arrow-blue)" />
+
+                    <!-- RELACIONES CON CÓDIGO / CONTENEDORES (NARANJA) -->
+                    <!-- GitHub -> Streamlit (horizontal, más corta) -->
+                    <polyline points="27,35 38,35 52,35"
+                        fill="none"
+                        stroke="#ea580c" stroke-width="0.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        marker-end="url(#arrow-orange)" />
+
+                    <!-- GitHub -> ECR (vertical izquierda, centrada respecto a las tarjetas) -->
+                    <line x1="24" y1="44" x2="24" y2="76"
+                        fill="none"
+                        stroke="#ea580c" stroke-width="0.5"
+                        stroke-linecap="round"
+                        marker-end="url(#arrow-orange)" />
+
+                    <!-- ECR -> EC2 (horizontal abajo, más proporcionada) -->
+                    <polyline points="34,89 43,89 52,89"
+                        fill="none"
+                        stroke="#ea580c" stroke-width="0.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        marker-end="url(#arrow-orange)" />
+                </svg>              
+                
+
+
+                <!-- NODOS -->
+                <div class="diagram">
+                    <!-- Usuario -->
+                    <div class="node user pos-user">
+                        <div class="node-icon">👤</div>
+                        <div class="node-title">Usuario Final</div>
+                        <div class="node-subtitle">Navegador Web</div>
+                        <div class="node-detail">https://airbnb-nyc.streamlit.app</div>
+                    </div>
+                    
+                    <!-- Streamlit Cloud -->
+                    <div class="node frontend pos-streamlit">
+                        <div class="node-icon">🎨</div>
+                        <div class="node-title">Streamlit Cloud</div>
+                        <div class="node-subtitle">Dashboard Interactivo<br>Frontend (Python 3.11)</div>
+                        <div class="node-detail">dashboard/streamlit_app.py<br>Mapbox · Plotly · Pydeck</div>
+                    </div>
+
+                    <!-- Elastic IP -->
+                    <div class="node infrastructure pos-elastic">
+                        <div class="node-icon">🔗</div>
+                        <div class="node-title">Elastic IP</div>
+                        <div class="node-subtitle">IP Estática de la API</div>
+                        <div class="node-detail">3.135.181.84:8000<br>API_URL consumida por Streamlit</div>
+                    </div>
+                    
+                    <!-- AWS EC2 -->
+                    <div class="node backend pos-ec2">
+                        <div class="node-icon">☁️</div>
+                        <div class="node-title">AWS EC2</div>
+                        <div class="node-subtitle">Backend API (t3.micro)<br>Amazon Linux 2023 + Docker</div>
+                        <div class="node-detail">FastAPI en contenedor<br>POST /properties/predict_price</div>
+                    </div>
+                    
+                    <!-- GitHub -->
+                    <div class="node development pos-github">
+                        <div class="node-icon">📦</div>
+                        <div class="node-title">GitHub</div>
+                        <div class="node-subtitle">Repositorio de Código<br>Fuente del Dashboard y API</div>
+                        <div class="node-detail">main branch<br>dashboard/ + api/</div>
+                    </div>
+                    
+                    <!-- AWS ECR -->
+                    <div class="node storage pos-ecr">
+                        <div class="node-icon">🐳</div>
+                        <div class="node-title">AWS ECR</div>
+                        <div class="node-subtitle">Container Registry<br>Imagen de la API</div>
+                        <div class="node-detail">airbnb-nyc-api:latest<br>us-east-2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leyenda vertical a la derecha -->
+            <div class="legend-panel">
+                <div class="legend-title">Componentes y Flujo</div>
+
+                <div class="legend-section">
+                    <div class="legend-subtitle">Nodos</div>
+                    <div class="legend-items-vertical">
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #2563eb; background: #dbeafe;"></div>
+                            <span>Cliente (Usuario Final)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #dc2626; background: #fee2e2;"></div>
+                            <span>Frontend (Streamlit Cloud)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #f59e0b; background: #fef3c7;"></div>
+                            <span>Backend (API FastAPI en EC2)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #8b5cf6; background: #ede9fe;"></div>
+                            <span>Infraestructura (Elastic IP)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #0d9488; background: #ccfbf1;"></div>
+                            <span>Almacenamiento (ECR - imágenes Docker)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="border-color: #334155; background: #e5e7eb;"></div>
+                            <span>Repositorio (GitHub)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-subtitle">Conexiones</div>
+                    <div class="legend-items-vertical">
+                        <div class="legend-item">
+                            <div class="legend-line" style="background:#2563eb;"></div>
+                            <span>Flujo principal de peticiones<br>(Usuario → Streamlit → Elastic IP → EC2)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line" style="background:#ea580c;"></div>
+                            <span>Flujo de código e imágenes Docker<br>(GitHub → Streamlit / ECR → EC2)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- /layout -->
+    </div>
+</body>
+</html>
